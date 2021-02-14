@@ -1,0 +1,196 @@
+<html>
+    <head>
+        <title></title>
+        <style>
+            #container {
+                text-align: center;
+                width: 500px;
+                height: 300px;
+                padding: 10px;
+                background-color: lightgrey;
+            }
+            #col1, #col2, #col0 {
+                float: left;
+            }
+            .casella {
+                width: 45px;
+                height: 45px;
+                margin-left: 10px;
+                margin-bottom: 10px;
+                text-align: center;
+                font-size: 25px;
+                font-weight: bold;
+            }
+            button {
+                width: 50px;
+                margin-left: 10px;
+                text-align: center;
+            }
+            #gestione{
+                margin-left: 20px;
+                align-content: center;
+                text-align: center;
+            }
+            #puntata {
+                width: 80px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="container">
+            <h2>Slot Machine</h2>
+            <div id="slot">
+                <div id="col0">
+                    <input type="text" id="0,0" class="casella" value="A" readonly><br>
+                    <input type="text" id="1,0" class="casella" value="B" readonly><br>
+                    <input type="text" id="2,0" class="casella" value="C" readonly><br>
+                    <button id="ferma0" class="ferma" onclick="ferma(0)" >Ferma</button>
+                </div>
+                <div id="col1">
+                    <input type="text" id="0,1" class="casella" value="A" readonly><br>
+                    <input type="text" id="1,1" class="casella" value="B" readonly><br>
+                    <input type="text" id="2,1" class="casella" value="C" readonly><br>
+                    <button id="ferma1" class="ferma" onclick="ferma(1)">Ferma</button>
+                </div>
+                <div id="col2">
+                    <input type="text" id="0,2" class="casella" value="A" readonly><br>
+                    <input type="text" id="1,2" class="casella" value="B" readonly><br>
+                    <input type="text" id="2,2" class="casella" value="C" readonly><br>
+                    <button id="ferma2" class="ferma" onclick="ferma(2)">Ferma</button>
+                </div>
+            </div>
+            <div id="gestione">
+                <br>
+                <h3>Puntata</h3>
+                <input type="text" id="puntata" value="1">
+                <br><br>
+                <button id="avvia" onclick="Avvia()">Avvia</button>
+            </div>
+        </div>
+
+        <script>
+            //***   VARIABILI
+            var puntata = document.getElementById("puntata").value;
+            var stop_btn = document.getElementsByClassName("ferma");
+            var avvia_btn = document.getElementById("avvia");
+            var _windowResult;
+
+            var alfabeto = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+            var vel_min = 100;
+            var vel_max = 1000;
+
+            var lettera_col = [0, 0, 0];    // lettera corrente per ogni colonna
+            var rotaz = [0, 0, 0];
+            var conta_ferma = 0;
+
+            //***   FUNZIONI PRINCIPALI
+            function Avvia()
+            {
+                if(Number(puntata) > 100 | Number(puntata) < 0)
+                    return;
+                console.log(puntata);
+                avvia_btn.disabled = true;
+                var vel0 = casuale(vel_min, vel_max);
+                console.log(vel0);
+                var vel1 = casuale(vel_min, vel_max);
+                console.log(vel1);
+                var vel2 = casuale(vel_min, vel_max);
+                console.log(vel2);
+                rotaz[0] = setInterval("ruota(0)", Number(vel0));
+                rotaz[1] = setInterval("ruota(1)", Number(vel1));
+                rotaz[2] = setInterval("ruota(2)", Number(vel2));
+            }
+            function ferma(col)
+            {
+                stop_btn[col].disabled = true;
+                clearInterval(rotaz[col]);
+                document.getElementById(1 + ',' + col).style.backgroundColor = "red";
+                ++conta_ferma;
+                if(conta_ferma==3)
+                    fineGioco();
+            }
+            function fineGioco()
+            {
+                if(vittoria())
+                    apriFinestra("Hai Vinto");
+                else
+                    apriFinestra("Hai perso");
+                
+                setTimeout("ricomincia()", 5000);
+            }
+            function ricomincia()
+            {
+                _windowResult.close();
+                lettera_col = [0, 0, 0];    
+                rotaz = [0, 0, 0];
+                conta_ferma = 0;
+                for(var i = 0; i<3; ++i)
+                {
+                    document.getElementById(0 + ',' + i).value = 'A';
+                    document.getElementById(1 + ',' + i).style.backgroundColor = "white";
+                    document.getElementById(1 + ',' + i).value = 'B';
+                    document.getElementById(2 + ',' + i).value = 'C';
+                    stop_btn[i].disabled = false;
+                }
+                avvia_btn.disabled = false;
+                puntata = 0;
+            }
+
+            //***   FUNZIONI DI UTILITA'
+            function casuale(min, max)
+            {
+                min = min/100;
+                max = max/100;
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                var ris = Math.floor(Math.random() * (max - min)) + min; 
+                return ris*100;
+            }
+            function ruota(col)
+            {
+                for(var i = 0; i<3; ++i)
+                {
+                    var casella = document.getElementById(i + ',' + col);
+                    casella.value = alfabeto[lettera_col[col]+i];
+                }
+                ++lettera_col[col];
+                if(alfabeto[lettera_col[col]+2] == undefined)
+                    lettera_col[col] = 0;
+            }
+            function vittoria()
+            {
+                if(document.getElementById(1 + ',' + 0).value == document.getElementById(1 + ',' + 1).value)
+                    if(document.getElementById(1 + ',' + 0).value == document.getElementById(1 + ',' + 2).value)
+                        return true;
+                return false;
+            }
+            function apriFinestra(mess)
+            {
+                var vincita;
+                if(mess == "Hai Vinto")
+                    vincita = puntata*100;
+                else
+                    vincita = "";
+
+                if ((_windowResult == null) || (_windowResult.closed)) {
+                    _windowResult = window.open("", "Game", "width=300,height=200,resizable=yes,location=no,menubar=no,toolbar=no,titlebar=no");
+                    _windowResult.document.open();
+                    _windowResult.document.write('<!DOCTYPE html>');
+                    _windowResult.document.write('<html><head>  <meta charset="utf-8"> <title>Result</title> <style type="text/css">' +
+                        '#resultTextWindow{' +
+                        'font-size:			24px;' +
+                        'font-weight:		bold;' +
+                        'font-family:		"Arial","Serif";' +
+                        'color:				black;' +
+                        'font-weight: 		bold;' +
+                        'background-color: 	white;' +
+                        'text-align: center;' +
+                        '}</style></head>');
+                    _windowResult.document.writeln('<body><p id="resultTextWindow">');
+                    _windowResult.document.writeln(mess + "<br>" + vincita);
+                }
+            }
+
+        </script>
+    </body>
+</html>
